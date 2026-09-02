@@ -18,5 +18,8 @@ fn takes_a_block_that_fills_a_register() {
     let mut near = sample(32, 0.3);
     let mut far = sample(32, 7.1);
     let taken = apply(&mut near, &mut far, stage);
-    assert_eq!(taken, cfg!(any(target_arch = "aarch64", target_arch = "x86_64")));
+    assert_eq!(
+        taken,
+        cfg!(any(target_arch = "aarch64", target_arch = "x86_64"))
+    );
 }

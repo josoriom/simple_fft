@@ -2,7 +2,10 @@ use crate::utilities::bit_reverse::{bit_reverse, count_bits, reverse_bits};
 use crate::Complex;
 
 fn points(values: &[f64]) -> Vec<Complex> {
-    values.iter().map(|value| Complex::new(*value, 0.0)).collect()
+    values
+        .iter()
+        .map(|value| Complex::new(*value, 0.0))
+        .collect()
 }
 
 #[test]
@@ -55,9 +58,9 @@ fn tiled_sizes_land_where_the_reversed_index_says() {
         let size = 1usize << bit_count;
         let mut data: Vec<Complex> = (0..size).map(|i| Complex::new(i as f64, 0.0)).collect();
         bit_reverse(&mut data);
-        for index in 0..size {
+        for (index, point) in data.iter().enumerate() {
             let expected = reverse_bits(index, bit_count) as f64;
-            assert_eq!(data[index].real, expected, "size {} at {}", size, index);
+            assert_eq!(point.real, expected, "size {} at {}", size, index);
         }
     }
 }

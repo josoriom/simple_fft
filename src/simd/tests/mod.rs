@@ -1,8 +1,8 @@
 #[cfg(target_arch = "x86_64")]
 mod avx2;
+mod dispatch;
 #[cfg(target_arch = "aarch64")]
 mod neon;
-mod dispatch;
 
 use crate::Complex;
 
@@ -24,7 +24,17 @@ pub(super) fn assert_same(left: &[Complex], right: &[Complex], label: &str) {
         let point = left[index];
         let other = right[index];
         let room = 1e-14 * (1.0 + point.real.abs().max(point.imag.abs()));
-        assert!((point.real - other.real).abs() < room, "{} real at {}", label, index);
-        assert!((point.imag - other.imag).abs() < room, "{} imag at {}", label, index);
+        assert!(
+            (point.real - other.real).abs() < room,
+            "{} real at {}",
+            label,
+            index
+        );
+        assert!(
+            (point.imag - other.imag).abs() < room,
+            "{} imag at {}",
+            label,
+            index
+        );
     }
 }

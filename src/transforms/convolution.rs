@@ -14,7 +14,11 @@ pub fn deconvolution(left: Input, right: Input) -> Vec<Complex> {
 }
 
 fn combine(left: Input, right: Input, operation: fn(Complex, Complex) -> Complex) -> Vec<Complex> {
-    assert_eq!(left.len(), right.len(), "Both inputs must have the same length.");
+    assert_eq!(
+        left.len(),
+        right.len(),
+        "Both inputs must have the same length."
+    );
     let plan = Plan::new(left.len());
     let paired: Vec<Complex> = plan
         .fft(left)

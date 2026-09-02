@@ -17,10 +17,7 @@ pub(crate) fn is_available() -> bool {
 unsafe fn split_parts(parts: *const f64) -> (__m256d, __m256d) {
     let low = _mm256_loadu_pd(parts);
     let high = _mm256_loadu_pd(parts.add(4));
-    (
-        _mm256_unpacklo_pd(low, high),
-        _mm256_unpackhi_pd(low, high),
-    )
+    (_mm256_unpacklo_pd(low, high), _mm256_unpackhi_pd(low, high))
 }
 
 #[inline]

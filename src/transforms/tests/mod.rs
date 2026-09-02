@@ -1,3 +1,3 @@
-mod plan;
 mod convolution;
 mod fft;
+mod plan;

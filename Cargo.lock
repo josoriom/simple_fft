@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "simple-fft"
+name = "simple_fft"
 version = "0.1.0"

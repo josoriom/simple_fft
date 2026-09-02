@@ -51,5 +51,8 @@ fn deconvolution_undoes_convolution() {
 #[test]
 #[should_panic(expected = "Both inputs must have the same length.")]
 fn rejects_inputs_of_different_lengths() {
-    convolution(Input::Real(vec![1.0, 2.0]), Input::Real(vec![1.0, 2.0, 3.0, 4.0]));
+    convolution(
+        Input::Real(vec![1.0, 2.0]),
+        Input::Real(vec![1.0, 2.0, 3.0, 4.0]),
+    );
 }

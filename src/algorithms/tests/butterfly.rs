@@ -38,8 +38,16 @@ fn the_chosen_kernel_agrees_with_the_plain_one() {
         apply(near_chosen, far_chosen, stage);
 
         for index in 0..half * 2 {
-            assert!((plain[index].real - chosen[index].real).abs() < 1e-15, "half {}", half);
-            assert!((plain[index].imag - chosen[index].imag).abs() < 1e-15, "half {}", half);
+            assert!(
+                (plain[index].real - chosen[index].real).abs() < 1e-15,
+                "half {}",
+                half
+            );
+            assert!(
+                (plain[index].imag - chosen[index].imag).abs() < 1e-15,
+                "half {}",
+                half
+            );
         }
     }
 }

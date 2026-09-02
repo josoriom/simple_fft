@@ -33,10 +33,26 @@ fn constant_gives_only_first_bin() {
 #[test]
 fn ramp_matches_hand_computed_dft() {
     let output = run(&[1.0, 2.0, 3.0, 4.0]);
-    assert!(is_close(output[0], Complex::new(10.0, 0.0)), "{:?}", output[0]);
-    assert!(is_close(output[1], Complex::new(-2.0, 2.0)), "{:?}", output[1]);
-    assert!(is_close(output[2], Complex::new(-2.0, 0.0)), "{:?}", output[2]);
-    assert!(is_close(output[3], Complex::new(-2.0, -2.0)), "{:?}", output[3]);
+    assert!(
+        is_close(output[0], Complex::new(10.0, 0.0)),
+        "{:?}",
+        output[0]
+    );
+    assert!(
+        is_close(output[1], Complex::new(-2.0, 2.0)),
+        "{:?}",
+        output[1]
+    );
+    assert!(
+        is_close(output[2], Complex::new(-2.0, 0.0)),
+        "{:?}",
+        output[2]
+    );
+    assert!(
+        is_close(output[3], Complex::new(-2.0, -2.0)),
+        "{:?}",
+        output[3]
+    );
 }
 
 fn naive_dft(values: &[f64]) -> Vec<Complex> {

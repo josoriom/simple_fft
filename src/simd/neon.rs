@@ -1,7 +1,7 @@
 use crate::Complex;
 use std::arch::aarch64::{
-    float64x2_t, float64x2x2_t, vaddq_f64, vfmaq_f64, vfmsq_f64, vld2q_f64, vmulq_f64,
-    vnegq_f64, vst2q_f64, vsubq_f64,
+    float64x2_t, float64x2x2_t, vaddq_f64, vfmaq_f64, vfmsq_f64, vld2q_f64, vmulq_f64, vnegq_f64,
+    vst2q_f64, vsubq_f64,
 };
 
 /// Points handled per step by this kernel.
@@ -79,34 +79,40 @@ pub(crate) unsafe fn apply_four(block: &mut [Complex], inner: &[Complex], outer:
         let bottom_real = vsubq_f64(a.0, b_real);
         let bottom_imag = vsubq_f64(a.1, b_imag);
 
-        let (side_real, side_imag) = multiply(
-            outer_turn,
-            vaddq_f64(c.0, d_real),
-            vaddq_f64(c.1, d_imag),
-        );
-        let (turned_real, turned_imag) = multiply(
-            outer_turn,
-            vsubq_f64(c.0, d_real),
-            vsubq_f64(c.1, d_imag),
-        );
+        let (side_real, side_imag) =
+            multiply(outer_turn, vaddq_f64(c.0, d_real), vaddq_f64(c.1, d_imag));
+        let (turned_real, turned_imag) =
+            multiply(outer_turn, vsubq_f64(c.0, d_real), vsubq_f64(c.1, d_imag));
         let cross_real = turned_imag;
         let cross_imag = vnegq_f64(turned_real);
 
         vst2q_f64(
             first.add(place),
-            float64x2x2_t(vaddq_f64(top_real, side_real), vaddq_f64(top_imag, side_imag)),
+            float64x2x2_t(
+                vaddq_f64(top_real, side_real),
+                vaddq_f64(top_imag, side_imag),
+            ),
         );
         vst2q_f64(
             second.add(place),
-            float64x2x2_t(vaddq_f64(bottom_real, cross_real), vaddq_f64(bottom_imag, cross_imag)),
+            float64x2x2_t(
+                vaddq_f64(bottom_real, cross_real),
+                vaddq_f64(bottom_imag, cross_imag),
+            ),
         );
         vst2q_f64(
             third.add(place),
-            float64x2x2_t(vsubq_f64(top_real, side_real), vsubq_f64(top_imag, side_imag)),
+            float64x2x2_t(
+                vsubq_f64(top_real, side_real),
+                vsubq_f64(top_imag, side_imag),
+            ),
         );
         vst2q_f64(
             fourth.add(place),
-            float64x2x2_t(vsubq_f64(bottom_real, cross_real), vsubq_f64(bottom_imag, cross_imag)),
+            float64x2x2_t(
+                vsubq_f64(bottom_real, cross_real),
+                vsubq_f64(bottom_imag, cross_imag),
+            ),
         );
         offset += LANES;
     }

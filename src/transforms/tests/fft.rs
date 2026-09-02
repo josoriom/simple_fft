@@ -25,7 +25,9 @@ fn a_ramp_matches_the_hand_computed_transform() {
 
 #[test]
 fn inverse_undoes_the_transform() {
-    let values: Vec<f64> = (0..64).map(|i| (i as f64 * 0.37).sin() * 3.0 - 1.0).collect();
+    let values: Vec<f64> = (0..64)
+        .map(|i| (i as f64 * 0.37).sin() * 3.0 - 1.0)
+        .collect();
     let restored = ifft(Input::Complex(fft(Input::Real(values.clone()))));
     for (value, point) in values.iter().zip(restored) {
         assert!(is_close(point, Complex::new(*value, 0.0)), "{:?}", point);
