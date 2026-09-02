@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 /// Complex number in rectangular form, z = a + bi.
 /// `real` is a, `imag` is b, and i is the imaginary unit where i^2 = -1.
@@ -77,6 +77,21 @@ impl Mul for Complex {
         Complex::new(
             self.real * other.real - self.imag * other.imag,
             self.real * other.imag + self.imag * other.real,
+        )
+    }
+}
+
+/// Multiply by the conjugate of the divisor, then divide by its squared modulus:
+/// (a + bi) / (c + di) = ((ac + bd) + (bc - ad)i) / (c^2 + d^2).
+impl Div for Complex {
+    type Output = Complex;
+
+    #[inline]
+    fn div(self, other: Complex) -> Complex {
+        let divisor = other.real * other.real + other.imag * other.imag;
+        Complex::new(
+            (self.real * other.real + self.imag * other.imag) / divisor,
+            (self.imag * other.real - self.real * other.imag) / divisor,
         )
     }
 }
