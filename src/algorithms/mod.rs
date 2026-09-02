@@ -1,3 +1,4 @@
+pub mod butterfly;
 pub mod cooley_tukey;
 
 #[cfg(test)]

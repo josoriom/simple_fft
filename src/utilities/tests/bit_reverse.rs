@@ -48,3 +48,28 @@ fn short_inputs_are_left_alone() {
     bit_reverse(&mut one);
     assert_eq!(one, points(&[9.0]));
 }
+
+#[test]
+fn tiled_sizes_land_where_the_reversed_index_says() {
+    for bit_count in 10..16u32 {
+        let size = 1usize << bit_count;
+        let mut data: Vec<Complex> = (0..size).map(|i| Complex::new(i as f64, 0.0)).collect();
+        bit_reverse(&mut data);
+        for index in 0..size {
+            let expected = reverse_bits(index, bit_count) as f64;
+            assert_eq!(data[index].real, expected, "size {} at {}", size, index);
+        }
+    }
+}
+
+#[test]
+fn tiled_sizes_come_back_after_two_passes() {
+    for bit_count in 10..14u32 {
+        let size = 1usize << bit_count;
+        let original: Vec<Complex> = (0..size).map(|i| Complex::new(i as f64, -1.0)).collect();
+        let mut data = original.clone();
+        bit_reverse(&mut data);
+        bit_reverse(&mut data);
+        assert_eq!(data, original, "size {}", size);
+    }
+}
