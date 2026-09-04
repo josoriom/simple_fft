@@ -1,12 +1,4 @@
 use crate::utilities::bit_reverse::{bit_reverse, count_bits, reverse_bits};
-use crate::Complex;
-
-fn points(values: &[f64]) -> Vec<Complex> {
-    values
-        .iter()
-        .map(|value| Complex::new(*value, 0.0))
-        .collect()
-}
 
 #[test]
 fn counts_the_bits_of_a_power_of_two() {
@@ -29,38 +21,37 @@ fn reads_three_bit_indices_backwards() {
 }
 
 #[test]
-fn reorders_eight_points() {
-    let mut data = points(&[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]);
-    bit_reverse(&mut data);
-    let order: Vec<f64> = data.iter().map(|point| point.real).collect();
-    assert_eq!(order, vec![0.0, 4.0, 2.0, 6.0, 1.0, 5.0, 3.0, 7.0]);
+fn reorders_eight_parts() {
+    let mut values: Vec<f64> = (0..8).map(|index| index as f64).collect();
+    bit_reverse(&mut values);
+    assert_eq!(values, vec![0.0, 4.0, 2.0, 6.0, 1.0, 5.0, 3.0, 7.0]);
 }
 
 #[test]
 fn reordering_twice_gives_back_the_original() {
-    let original = points(&[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]);
-    let mut data = original.clone();
-    bit_reverse(&mut data);
-    bit_reverse(&mut data);
-    assert_eq!(data, original);
+    let original: Vec<f64> = (0..8).map(|index| index as f64).collect();
+    let mut values = original.clone();
+    bit_reverse(&mut values);
+    bit_reverse(&mut values);
+    assert_eq!(values, original);
 }
 
 #[test]
 fn short_inputs_are_left_alone() {
-    let mut one = points(&[9.0]);
+    let mut one = vec![9.0];
     bit_reverse(&mut one);
-    assert_eq!(one, points(&[9.0]));
+    assert_eq!(one, vec![9.0]);
 }
 
 #[test]
 fn tiled_sizes_land_where_the_reversed_index_says() {
     for bit_count in 10..16u32 {
         let size = 1usize << bit_count;
-        let mut data: Vec<Complex> = (0..size).map(|i| Complex::new(i as f64, 0.0)).collect();
-        bit_reverse(&mut data);
-        for (index, point) in data.iter().enumerate() {
+        let mut values: Vec<f64> = (0..size).map(|index| index as f64).collect();
+        bit_reverse(&mut values);
+        for (index, part) in values.iter().enumerate() {
             let expected = reverse_bits(index, bit_count) as f64;
-            assert_eq!(point.real, expected, "size {} at {}", size, index);
+            assert_eq!(*part, expected, "size {} at {}", size, index);
         }
     }
 }
@@ -69,10 +60,10 @@ fn tiled_sizes_land_where_the_reversed_index_says() {
 fn tiled_sizes_come_back_after_two_passes() {
     for bit_count in 10..14u32 {
         let size = 1usize << bit_count;
-        let original: Vec<Complex> = (0..size).map(|i| Complex::new(i as f64, -1.0)).collect();
-        let mut data = original.clone();
-        bit_reverse(&mut data);
-        bit_reverse(&mut data);
-        assert_eq!(data, original, "size {}", size);
+        let original: Vec<f64> = (0..size).map(|index| index as f64).collect();
+        let mut values = original.clone();
+        bit_reverse(&mut values);
+        bit_reverse(&mut values);
+        assert_eq!(values, original, "size {}", size);
     }
 }

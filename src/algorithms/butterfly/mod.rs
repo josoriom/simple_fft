@@ -1,16 +1,14 @@
 pub mod radix4;
 pub mod scalar;
 
-use crate::Complex;
+use crate::utilities::twiddles::Turns;
 
-/// Runs one stage of butterflies over a block.
-/// Hands the block to a wide kernel when the `simd` feature is on and one fits,
-/// and uses the plain kernel otherwise.
+/// Runs one stage of butterflies, on a wide kernel when the `simd` feature offers one.
 #[inline]
-pub(crate) fn apply(near: &mut [Complex], far: &mut [Complex], twiddles: &[Complex]) {
+pub(crate) fn apply(real: &mut [f64], imag: &mut [f64], turns: Turns) {
     #[cfg(feature = "simd")]
-    if crate::simd::apply(near, far, twiddles) {
+    if crate::simd::apply_two(real, imag, turns) {
         return;
     }
-    scalar::apply(near, far, twiddles);
+    scalar::apply(real, imag, turns);
 }

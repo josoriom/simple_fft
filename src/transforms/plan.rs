@@ -1,18 +1,18 @@
 use crate::algorithms::cooley_tukey::cooley_tukey;
-use crate::utilities::twiddles::get_twiddles;
-use crate::{Complex, Input};
+use crate::utilities::twiddles::Twiddles;
+use crate::Data;
 
 /// Holds the twiddle table for one size, so repeated transforms build it only once.
 pub struct Plan {
     size: usize,
-    twiddles: Vec<Complex>,
+    twiddles: Twiddles,
 }
 
 impl Plan {
     pub fn new(size: usize) -> Self {
         Self {
             size,
-            twiddles: get_twiddles(size),
+            twiddles: Twiddles::new(size),
         }
     }
 
@@ -20,27 +20,35 @@ impl Plan {
         self.size
     }
 
-    pub fn fft(&self, input: Input) -> Vec<Complex> {
+    pub fn fft(&self, input: Data) -> Data {
         let mut data = self.take(input);
-        cooley_tukey(&mut data, &self.twiddles);
+        cooley_tukey(&mut data.real, &mut data.imag, &self.twiddles);
         data
     }
 
-    pub fn ifft(&self, input: Input) -> Vec<Complex> {
+    pub fn ifft(&self, input: Data) -> Data {
         let mut data = self.take(input);
-        for point in data.iter_mut() {
-            *point = point.flip_sign_of_imag();
+        for part in data.imag.iter_mut() {
+            *part = -*part;
         }
-        cooley_tukey(&mut data, &self.twiddles);
+        cooley_tukey(&mut data.real, &mut data.imag, &self.twiddles);
         let factor = 1.0 / self.size as f64;
-        for point in data.iter_mut() {
-            *point = point.flip_sign_of_imag().scale(factor);
+        for part in data.real.iter_mut() {
+            *part *= factor;
+        }
+        for part in data.imag.iter_mut() {
+            *part *= -factor;
         }
         data
     }
 
-    fn take(&self, input: Input) -> Vec<Complex> {
+    fn take(&self, input: Data) -> Data {
+        assert_eq!(
+            input.real.len(),
+            input.imag.len(),
+            "Real and imaginary parts must have the same length."
+        );
         assert_eq!(input.len(), self.size, "Input must match the plan size.");
-        input.into_points()
+        input
     }
 }

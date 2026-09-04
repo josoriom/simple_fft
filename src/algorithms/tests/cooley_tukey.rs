@@ -1,58 +1,43 @@
 use crate::algorithms::cooley_tukey::cooley_tukey;
-use crate::utilities::twiddles::get_twiddles;
+use crate::utilities::twiddles::Twiddles;
 use crate::Complex;
 
-fn run(values: &[f64]) -> Vec<Complex> {
-    let mut data: Vec<Complex> = values.iter().map(|v| Complex::new(*v, 0.0)).collect();
-    let twiddles = get_twiddles(data.len());
-    cooley_tukey(&mut data, &twiddles);
-    data
+fn run(values: &[f64]) -> (Vec<f64>, Vec<f64>) {
+    let mut real = values.to_vec();
+    let mut imag = vec![0.0; values.len()];
+    let twiddles = Twiddles::new(values.len());
+    cooley_tukey(&mut real, &mut imag, &twiddles);
+    (real, imag)
 }
 
-fn is_close(left: Complex, right: Complex) -> bool {
-    (left.real - right.real).abs() < 1e-12 && (left.imag - right.imag).abs() < 1e-12
+fn is_close(left: f64, right: f64) -> bool {
+    (left - right).abs() < 1e-12
 }
 
 #[test]
 fn impulse_gives_all_ones() {
-    let output = run(&[1.0, 0.0, 0.0, 0.0]);
-    for point in output {
-        assert!(is_close(point, Complex::new(1.0, 0.0)), "{:?}", point);
+    let (real, imag) = run(&[1.0, 0.0, 0.0, 0.0]);
+    for index in 0..4 {
+        assert!(is_close(real[index], 1.0) && is_close(imag[index], 0.0));
     }
 }
 
 #[test]
 fn constant_gives_only_first_bin() {
-    let output = run(&[1.0, 1.0, 1.0, 1.0]);
-    assert!(is_close(output[0], Complex::new(4.0, 0.0)));
-    for point in &output[1..] {
-        assert!(is_close(*point, Complex::zero()), "{:?}", point);
+    let (real, imag) = run(&[1.0, 1.0, 1.0, 1.0]);
+    assert!(is_close(real[0], 4.0));
+    for index in 1..4 {
+        assert!(is_close(real[index], 0.0) && is_close(imag[index], 0.0));
     }
 }
 
 #[test]
 fn ramp_matches_hand_computed_dft() {
-    let output = run(&[1.0, 2.0, 3.0, 4.0]);
-    assert!(
-        is_close(output[0], Complex::new(10.0, 0.0)),
-        "{:?}",
-        output[0]
-    );
-    assert!(
-        is_close(output[1], Complex::new(-2.0, 2.0)),
-        "{:?}",
-        output[1]
-    );
-    assert!(
-        is_close(output[2], Complex::new(-2.0, 0.0)),
-        "{:?}",
-        output[2]
-    );
-    assert!(
-        is_close(output[3], Complex::new(-2.0, -2.0)),
-        "{:?}",
-        output[3]
-    );
+    let (real, imag) = run(&[1.0, 2.0, 3.0, 4.0]);
+    assert!(is_close(real[0], 10.0) && is_close(imag[0], 0.0));
+    assert!(is_close(real[1], -2.0) && is_close(imag[1], 2.0));
+    assert!(is_close(real[2], -2.0) && is_close(imag[2], 0.0));
+    assert!(is_close(real[3], -2.0) && is_close(imag[3], -2.0));
 }
 
 fn naive_dft(values: &[f64]) -> Vec<Complex> {
@@ -70,14 +55,24 @@ fn naive_dft(values: &[f64]) -> Vec<Complex> {
 }
 
 #[test]
-fn matches_the_slow_dft_for_eight_and_sixteen() {
-    for size in [8usize, 16] {
+fn matches_the_slow_dft_for_many_sizes() {
+    for size in [8usize, 16, 32, 64, 128] {
         let values: Vec<f64> = (0..size).map(|i| (i as f64 * 0.7).sin() + 0.3).collect();
-        let fast = run(&values);
+        let (real, imag) = run(&values);
         let slow = naive_dft(&values);
-        for (bin, (a, b)) in fast.iter().zip(slow.iter()).enumerate() {
-            assert!((a.real - b.real).abs() < 1e-11, "size {} bin {}", size, bin);
-            assert!((a.imag - b.imag).abs() < 1e-11, "size {} bin {}", size, bin);
+        for bin in 0..size {
+            assert!(
+                (real[bin] - slow[bin].real).abs() < 1e-11,
+                "size {} bin {}",
+                size,
+                bin
+            );
+            assert!(
+                (imag[bin] - slow[bin].imag).abs() < 1e-11,
+                "size {} bin {}",
+                size,
+                bin
+            );
         }
     }
 }

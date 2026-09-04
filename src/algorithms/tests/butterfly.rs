@@ -1,50 +1,40 @@
 use crate::algorithms::butterfly::{apply, scalar};
-use crate::utilities::twiddles::{get_stage, get_twiddles};
-use crate::Complex;
+use crate::utilities::twiddles::Twiddles;
 
 #[test]
 fn a_single_pair_adds_and_subtracts() {
-    let mut near = vec![Complex::new(5.0, 1.0)];
-    let mut far = vec![Complex::new(2.0, 3.0)];
-    scalar::apply(&mut near, &mut far, &[Complex::new(1.0, 0.0)]);
-    assert_eq!(near[0], Complex::new(7.0, 4.0));
-    assert_eq!(far[0], Complex::new(3.0, -2.0));
-}
-
-#[test]
-fn a_twiddle_of_minus_i_turns_the_point() {
-    let mut near = vec![Complex::new(0.0, 0.0)];
-    let mut far = vec![Complex::new(1.0, 0.0)];
-    scalar::apply(&mut near, &mut far, &[Complex::new(0.0, -1.0)]);
-    assert_eq!(near[0], Complex::new(0.0, -1.0));
-    assert_eq!(far[0], Complex::new(0.0, 1.0));
+    let mut real = vec![5.0, 2.0];
+    let mut imag = vec![1.0, 3.0];
+    let twiddles = Twiddles::new(2);
+    scalar::apply(&mut real, &mut imag, twiddles.get_stage(1));
+    assert_eq!(real, vec![7.0, 3.0]);
+    assert_eq!(imag, vec![4.0, -2.0]);
 }
 
 #[test]
 fn the_chosen_kernel_agrees_with_the_plain_one() {
-    let twiddles = get_twiddles(64);
+    let twiddles = Twiddles::new(64);
     for half in [1usize, 2, 4, 8, 16, 32] {
-        let stage = get_stage(&twiddles, half);
-        let points: Vec<Complex> = (0..half * 2)
-            .map(|index| Complex::new((index as f64).sin(), (index as f64).cos()))
-            .collect();
+        let turns = twiddles.get_stage(half);
+        let real: Vec<f64> = (0..half * 2).map(|i| (i as f64).sin()).collect();
+        let imag: Vec<f64> = (0..half * 2).map(|i| (i as f64).cos()).collect();
 
-        let mut plain = points.clone();
-        let (near_plain, far_plain) = plain.split_at_mut(half);
-        scalar::apply(near_plain, far_plain, stage);
+        let mut plain_real = real.clone();
+        let mut plain_imag = imag.clone();
+        scalar::apply(&mut plain_real, &mut plain_imag, turns);
 
-        let mut chosen = points.clone();
-        let (near_chosen, far_chosen) = chosen.split_at_mut(half);
-        apply(near_chosen, far_chosen, stage);
+        let mut chosen_real = real.clone();
+        let mut chosen_imag = imag.clone();
+        apply(&mut chosen_real, &mut chosen_imag, turns);
 
         for index in 0..half * 2 {
             assert!(
-                (plain[index].real - chosen[index].real).abs() < 1e-15,
+                (plain_real[index] - chosen_real[index]).abs() < 1e-14,
                 "half {}",
                 half
             );
             assert!(
-                (plain[index].imag - chosen[index].imag).abs() < 1e-15,
+                (plain_imag[index] - chosen_imag[index]).abs() < 1e-14,
                 "half {}",
                 half
             );

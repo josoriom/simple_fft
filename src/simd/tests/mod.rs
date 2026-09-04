@@ -4,35 +4,24 @@ mod dispatch;
 #[cfg(target_arch = "aarch64")]
 mod neon;
 
-use crate::Complex;
-
-/// Repeatable points for comparing a wide kernel against the plain one.
-pub(super) fn sample(count: usize, seed: f64) -> Vec<Complex> {
-    (0..count)
-        .map(|index| {
-            let step = index as f64 + seed;
-            Complex::new(step.sin() * 3.0, step.cos() - 0.5)
-        })
-        .collect()
+/// Repeatable parts for comparing a wide kernel against the plain one.
+pub(super) fn sample(count: usize, seed: f64) -> (Vec<f64>, Vec<f64>) {
+    let real = (0..count)
+        .map(|i| ((i as f64 + seed).sin()) * 3.0)
+        .collect();
+    let imag = (0..count).map(|i| (i as f64 + seed).cos() - 0.5).collect();
+    (real, imag)
 }
 
-/// Fails unless every point agrees to a few of the last bits of a double.
+/// Fails unless every part agrees to a few of the last bits of a double.
 /// A wide kernel fuses multiply and add, which rounds once where the plain one rounds twice,
 /// so the two disagree by well under one unit in the last place.
-pub(super) fn assert_same(left: &[Complex], right: &[Complex], label: &str) {
+pub(super) fn assert_same(left: &[f64], right: &[f64], label: &str) {
     for index in 0..left.len() {
-        let point = left[index];
-        let other = right[index];
-        let room = 1e-14 * (1.0 + point.real.abs().max(point.imag.abs()));
+        let room = 1e-14 * (1.0 + left[index].abs());
         assert!(
-            (point.real - other.real).abs() < room,
-            "{} real at {}",
-            label,
-            index
-        );
-        assert!(
-            (point.imag - other.imag).abs() < room,
-            "{} imag at {}",
+            (left[index] - right[index]).abs() < room,
+            "{} at {}",
             label,
             index
         );

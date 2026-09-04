@@ -1,30 +1,34 @@
 use crate::transforms::plan::Plan;
-use crate::{Complex, Input};
+use crate::{Complex, Data};
 
 /// Circular convolution through the convolution theorem, ifft(fft(left) * fft(right)).
 /// Both inputs must have the same length and be a power of two.
-pub fn convolution(left: Input, right: Input) -> Vec<Complex> {
+pub fn convolution(left: Data, right: Data) -> Data {
     combine(left, right, |a, b| a * b)
 }
 
 /// Circular deconvolution, the inverse of convolution, ifft(fft(left) / fft(right)).
 /// Both inputs must have the same length and be a power of two.
-pub fn deconvolution(left: Input, right: Input) -> Vec<Complex> {
+pub fn deconvolution(left: Data, right: Data) -> Data {
     combine(left, right, |a, b| a / b)
 }
 
-fn combine(left: Input, right: Input, operation: fn(Complex, Complex) -> Complex) -> Vec<Complex> {
+fn combine(left: Data, right: Data, operation: fn(Complex, Complex) -> Complex) -> Data {
     assert_eq!(
         left.len(),
         right.len(),
         "Both inputs must have the same length."
     );
     let plan = Plan::new(left.len());
-    let paired: Vec<Complex> = plan
-        .fft(left)
-        .into_iter()
-        .zip(plan.fft(right))
-        .map(|(a, b)| operation(a, b))
-        .collect();
-    plan.ifft(Input::Complex(paired))
+    let mut first = plan.fft(left);
+    let second = plan.fft(right);
+    for index in 0..first.len() {
+        let paired = operation(
+            Complex::new(first.real[index], first.imag[index]),
+            Complex::new(second.real[index], second.imag[index]),
+        );
+        first.real[index] = paired.real;
+        first.imag[index] = paired.imag;
+    }
+    plan.ifft(first)
 }

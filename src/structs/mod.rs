@@ -1,8 +1,8 @@
 pub mod complex;
-pub mod input;
+pub mod data;
 
 pub use complex::Complex;
-pub use input::Input;
+pub use data::Data;
 
 #[cfg(test)]
 mod tests;
